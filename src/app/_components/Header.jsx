@@ -45,7 +45,7 @@ function Header() {
           className="object-contain"
         />
         <h1 className="text-xl font-bold bg-gradient-to-r from-[#2ecc71] to-[#27ae60] bg-clip-text text-transparent">
-          Campus Lost and Found
+          Nwssu Ojt System
         </h1>
       </div>
 

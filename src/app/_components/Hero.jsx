@@ -23,8 +23,8 @@ function Hero() {
       {/* Full background image with overlay */}
       <div className="absolute inset-0 -z-10">
         <Image
-          src="/background.jpg"
-          alt="Campus background"
+          src="/ojt-background.jpg"  // Consider using an image of students in workplace or meeting with advisor
+          alt="OJT Background"
           fill
           className="object-cover"
           priority
@@ -36,27 +36,27 @@ function Hero() {
         <div className="flex flex-col items-center space-y-8">
           <div className="space-y-6">
             <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl text-white">
-              Reuniting What's Lost
+              OJT Progress Tracker
             </h1>
             <p className="mx-auto max-w-[700px] text-gray-200 md:text-xl">
-              Our platform helps you find lost items and return found belongings to their rightful owners.
+              Streamline your On-the-Job Training experience with our journal system. Students can submit weekly reports and advisors can monitor progress in real-time.
             </p>
           </div>
           
           <div className="flex flex-col gap-4 min-[400px]:flex-row">
             {!isSignedIn ? (
               <>
-                <Link href="/sign-in">
+                <Link href="/sign-in?role=student">
                   <Button className="px-8 h-12 text-lg bg-[#2ecc71] hover:bg-[#27ae60] text-white">
-                    Report Found Item
+                    I'm a Student
                   </Button>
                 </Link>
-                <Link href="/sign-in">
+                <Link href="/sign-in?role=advisor">
                   <Button 
                     variant="outline" 
                     className="px-8 h-12 text-lg border-white bg-white/10 text-white hover:bg-white/20 hover:text-white"
                   >
-                    Search Lost Item
+                    I'm an Advisor
                   </Button>
                 </Link>
               </>
@@ -67,6 +67,22 @@ function Hero() {
                 </Button>
               </Link>
             )}
+          </div>
+
+          {/* Additional features preview */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8 text-white">
+            <div className="bg-white/10 p-4 rounded-lg">
+              <h3 className="font-semibold">Weekly Reports</h3>
+              <p className="text-sm">Track your progress weekly</p>
+            </div>
+            <div className="bg-white/10 p-4 rounded-lg">
+              <h3 className="font-semibold">Advisor Feedback</h3>
+              <p className="text-sm">Get timely responses</p>
+            </div>
+            <div className="bg-white/10 p-4 rounded-lg">
+              <h3 className="font-semibold">Progress Analytics</h3>
+              <p className="text-sm">Visualize your growth</p>
+            </div>
           </div>
         </div>
       </div>
