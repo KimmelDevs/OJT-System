@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import React, { useEffect, useState, useMemo } from 'react';
+import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import Card from '../_components/Card';
-import { DownloadIcon, UploadIcon, PhoneIcon, MailIcon, MapPinIcon, EditIcon, SaveIcon, XIcon } from 'lucide-react';
+import { DownloadIcon, UploadIcon, PhoneIcon, MailIcon, MapPinIcon, EditIcon, SaveIcon, XIcon, ChevronDownIcon, SearchIcon } from 'lucide-react';
 
 export default function StudentInfoPage() {
   const [studentData, setStudentData] = useState(null);
@@ -15,11 +15,15 @@ export default function StudentInfoPage() {
   const [editData, setEditData] = useState({});
   const [uploading, setUploading] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [companies, setCompanies] = useState([]);
+  const [companySearchTerm, setCompanySearchTerm] = useState('');
+  const [showCompanyModal, setShowCompanyModal] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        await fetchCompanies();
         await fetchStudentData(user);
       } else {
         router.push('/sign-in');
@@ -28,6 +32,20 @@ export default function StudentInfoPage() {
 
     return () => unsubscribe();
   }, [router]);
+
+  const fetchCompanies = async () => {
+    try {
+      const companiesRef = collection(db, 'companies');
+      const querySnapshot = await getDocs(companiesRef);
+      const companiesData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setCompanies(companiesData);
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+    }
+  };
 
   const fetchStudentData = async (user) => {
     try {
@@ -50,6 +68,7 @@ export default function StudentInfoPage() {
           emergencyContactName: data.emergencyContactName || 'Not provided',
           emergencyContactRelation: data.emergencyContactRelation || 'Not provided',
           emergencyContactPhone: data.emergencyContactPhone || 'Not provided',
+          ojtCompany: data.ojtCompany || null
         });
         setEditData({
           displayName: data.displayName || '',
@@ -60,6 +79,7 @@ export default function StudentInfoPage() {
           emergencyContactName: data.emergencyContactName || '',
           emergencyContactRelation: data.emergencyContactRelation || '',
           emergencyContactPhone: data.emergencyContactPhone || '',
+          ojtCompany: data.ojtCompany || null
         });
       } else {
         setStudentData({
@@ -74,7 +94,8 @@ export default function StudentInfoPage() {
           resumeLastUpdated: 'Never',
           emergencyContactName: 'Not provided',
           emergencyContactRelation: 'Not provided',
-          emergencyContactPhone: 'Not provided'
+          emergencyContactPhone: 'Not provided',
+          ojtCompany: null
         });
       }
     } catch (error) {
@@ -88,13 +109,11 @@ export default function StudentInfoPage() {
   const handleEdit = () => {
     setEditing(true);
     setShowHint(true);
-    // Hide hint after 5 seconds
     setTimeout(() => setShowHint(false), 5000);
   };
 
   const handleCancel = () => {
     setEditing(false);
-    // Reset edit data to current student data
     setEditData({
       displayName: studentData.displayName || '',
       course: studentData.course || '',
@@ -104,6 +123,7 @@ export default function StudentInfoPage() {
       emergencyContactName: studentData.emergencyContactName || '',
       emergencyContactRelation: studentData.emergencyContactRelation || '',
       emergencyContactPhone: studentData.emergencyContactPhone || '',
+      ojtCompany: studentData.ojtCompany || null
     });
   };
 
@@ -130,7 +150,6 @@ export default function StudentInfoPage() {
         updatedAt: new Date()
       });
 
-      // Refresh the data
       await fetchStudentData(user);
       setEditing(false);
     } catch (error) {
@@ -146,15 +165,8 @@ export default function StudentInfoPage() {
 
     try {
       setUploading(true);
-      // Here you would implement your file upload logic to Firebase Storage
-      // For example:
-      // const storageRef = ref(storage, `resumes/${auth.currentUser.uid}/${file.name}`);
-      // const uploadTask = uploadBytesResumable(storageRef, file);
-      // await uploadTask;
-      // const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-      
-      // For now, we'll simulate a successful upload
-      const downloadURL = 'https://example.com/resume.pdf'; // Replace with actual URL
+      // Implement your actual file upload logic here
+      const downloadURL = 'https://example.com/resume.pdf';
       const updatedAt = new Date().toLocaleDateString();
 
       const userDocRef = doc(db, 'users', auth.currentUser.uid);
@@ -163,13 +175,27 @@ export default function StudentInfoPage() {
         resumeLastUpdated: updatedAt
       });
 
-      // Refresh the data
       await fetchStudentData(auth.currentUser);
     } catch (error) {
       console.error('Error uploading resume:', error);
     } finally {
       setUploading(false);
     }
+  };
+
+  const filteredCompanies = useMemo(() => {
+    return companies.filter(company => 
+      company.name.toLowerCase().includes(companySearchTerm.toLowerCase())
+    );
+  }, [companies, companySearchTerm]);
+
+  const handleCompanySelect = (company) => {
+    setEditData(prev => ({
+      ...prev,
+      ojtCompany: company
+    }));
+    setShowCompanyModal(false);
+    setCompanySearchTerm('');
   };
 
   if (loading) {
@@ -185,6 +211,65 @@ export default function StudentInfoPage() {
 
   return (
     <div className="min-h-screen p-8" style={{ backgroundColor: '#22201a' }}>
+      {/* Company Selection Modal */}
+      {showCompanyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+          <div 
+            className="w-full max-w-md rounded-lg p-6"
+            style={{ backgroundColor: '#2d2b26', borderColor: '#3ae973', borderWidth: '1px' }}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium" style={{ color: '#fefffe' }}>Select OJT Company</h3>
+              <button 
+                onClick={() => setShowCompanyModal(false)}
+                className="text-[#fefffe] hover:text-[#3ae973]"
+              >
+                <XIcon size={20} />
+              </button>
+            </div>
+            
+            <div className="relative mb-4">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <SearchIcon size={16} style={{ color: '#fefffe' }} />
+              </div>
+              <input
+                type="text"
+                className="w-full pl-10 pr-4 py-2 rounded-lg bg-[#393632] text-[#fefffe] border border-[#3ae973]"
+                placeholder="Search companies..."
+                value={companySearchTerm}
+                onChange={(e) => setCompanySearchTerm(e.target.value)}
+                autoFocus
+              />
+            </div>
+            
+            <div className="max-h-96 overflow-y-auto">
+              {filteredCompanies.length > 0 ? (
+                filteredCompanies.map(company => (
+                  <div
+                    key={company.id}
+                    className="p-3 mb-2 rounded-lg cursor-pointer hover:bg-[#393632]"
+                    style={{ borderColor: '#3ae973', borderWidth: '1px' }}
+                    onClick={() => handleCompanySelect(company)}
+                  >
+                    <div className="font-medium" style={{ color: '#fefffe' }}>{company.name}</div>
+                    <div className="text-sm mt-1" style={{ color: '#fefffe' }}>{company.address}</div>
+                    {company.description && (
+                      <div className="text-xs mt-1 opacity-70" style={{ color: '#fefffe' }}>
+                        {company.description}
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4" style={{ color: '#fefffe' }}>
+                  No companies found matching your search
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <Card 
         title="My Information"
         titleStyle={{ color: '#fefffe' }}
@@ -443,6 +528,59 @@ export default function StudentInfoPage() {
             <div className="text-sm" style={{ color: '#fefffe' }}>
               <div>{studentData?.emergencyContactName} ({studentData?.emergencyContactRelation})</div>
               <div>{studentData?.emergencyContactPhone}</div>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-6">
+          <div className="text-sm font-medium mb-2" style={{ color: '#fefffe' }}>
+            OJT Company
+          </div>
+          
+          {editing ? (
+            <div>
+              {editData.ojtCompany ? (
+                <div className="p-3 rounded-lg mb-2" style={{ backgroundColor: '#393632' }}>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="font-medium" style={{ color: '#fefffe' }}>{editData.ojtCompany.name}</div>
+                      <div className="text-sm mt-1" style={{ color: '#fefffe' }}>{editData.ojtCompany.address}</div>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        setEditData(prev => ({ ...prev, ojtCompany: null }));
+                        setCompanySearchTerm('');
+                      }}
+                      className="text-[#ff6b6b] hover:text-[#ff3b3b]"
+                    >
+                      <XIcon size={16} />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm mb-2" style={{ color: '#fefffe' }}>
+                  No company selected
+                </div>
+              )}
+              <button
+                onClick={() => setShowCompanyModal(true)}
+                className="flex items-center text-sm hover:underline"
+                style={{ color: '#3ae973' }}
+              >
+                <SearchIcon size={16} className="mr-1" />
+                {editData.ojtCompany ? 'Change Company' : 'Select Company'}
+              </button>
+            </div>
+          ) : (
+            <div style={{ color: '#fefffe' }}>
+              {studentData.ojtCompany ? (
+                <>
+                  <div className="font-medium">{studentData.ojtCompany.name}</div>
+                  <div className="text-sm">{studentData.ojtCompany.address}</div>
+                </>
+              ) : (
+                'Not assigned yet'
+              )}
             </div>
           )}
         </div>
