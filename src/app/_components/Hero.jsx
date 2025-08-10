@@ -14,16 +14,15 @@ function Hero() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsSignedIn(!!user)
     })
-
     return () => unsubscribe()
   }, [])
 
   return (
     <section className="relative w-full h-screen min-h-[600px] flex items-center justify-center">
-      {/* Full background image with overlay */}
+      {/* Background image with overlay */}
       <div className="absolute inset-0 -z-10">
         <Image
-          src="/ojt-background.jpg"  // Consider using an image of students in workplace or meeting with advisor
+          src="/ojt-background.jpg"
           alt="OJT Background"
           fill
           className="object-cover"
@@ -34,29 +33,29 @@ function Hero() {
 
       <div className="container px-4 md:px-6 text-center">
         <div className="flex flex-col items-center space-y-8">
+          {/* Title + description */}
           <div className="space-y-6">
             <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl text-white">
               OJT Progress Tracker
             </h1>
             <p className="mx-auto max-w-[700px] text-gray-200 md:text-xl">
-              Streamline your On-the-Job Training experience with our journal system. Students can submit weekly reports and advisors can monitor progress in real-time.
+              Streamline your On-the-Job Training experience with our journal system. 
+              Students can submit weekly reports and advisors can monitor progress in real-time.
             </p>
           </div>
-          
-          <div className="flex flex-col gap-4 min-[400px]:flex-row">
+
+          {/* Login / Sign Up / Dashboard Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4">
             {!isSignedIn ? (
               <>
-                <Link href="/sign-in?role=student">
+                <Link href="/sign-in">
                   <Button className="px-8 h-12 text-lg bg-[#2ecc71] hover:bg-[#27ae60] text-white">
-                    I'm a Student
+                    Login
                   </Button>
                 </Link>
-                <Link href="/sign-in?role=advisor">
-                  <Button 
-                    variant="outline" 
-                    className="px-8 h-12 text-lg border-white bg-white/10 text-white hover:bg-white/20 hover:text-white"
-                  >
-                    I'm an Advisor
+                <Link href="/sign-up">
+                  <Button className="px-8 h-12 text-lg bg-[#3498db] hover:bg-[#2980b9] text-white">
+                    Sign Up
                   </Button>
                 </Link>
               </>
@@ -69,7 +68,7 @@ function Hero() {
             )}
           </div>
 
-          {/* Additional features preview */}
+          {/* Features */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8 text-white">
             <div className="bg-white/10 p-4 rounded-lg">
               <h3 className="font-semibold">Weekly Reports</h3>
@@ -85,6 +84,20 @@ function Hero() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Bottom-right DCODE logo */}
+      <div className="absolute bottom-4 right-4 flex items-center gap-2">
+        <Link href="https://dcode-khaki.vercel.app/" target="_blank">
+          <Image
+            src="/a.png" // DCODE logo image
+            alt="Created by DCODE"
+            width={140}
+            height={70}
+            className="hover:opacity-80 transition-opacity cursor-pointer"
+            priority
+          />
+        </Link>
       </div>
     </section>
   )

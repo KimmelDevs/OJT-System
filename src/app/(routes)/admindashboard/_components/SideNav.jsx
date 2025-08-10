@@ -9,13 +9,14 @@ import {
   Ban
 } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { auth } from "@/lib/firebase"
 import { onAuthStateChanged, signOut } from "firebase/auth"
 
 function SideNav() {
   const [user, setUser] = useState(null)
   const path = usePathname()
+  const router = useRouter()
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -26,7 +27,9 @@ function SideNav() {
 
   const handleSignOut = async () => {
     try {
+      setUser(null) // Immediately reflect logout in UI
       await signOut(auth)
+      router.push("/sign-in") // Redirect to sign-in page
     } catch (error) {
       console.error("Error signing out:", error)
     }
@@ -41,17 +44,16 @@ function SideNav() {
     },
     {
       id: 2,
-      name: "Pending Claims",
+      name: "Endorsements",
       icon: CheckSquare,
-      path: "/admindashboard/pending-claims",
+      path: "/admindashboard/endorsements_admin",
     },
     {
       id: 3,
-      name: "Verified Claims/Returns",
+      name: "Students",
       icon: FileText,
-      path: "/admindashboard/verified-claims",
+      path: "/admindashboard/studentattendance",
     },
-    
     {
       id: 4,
       name: "Rejected Claims/Returns",
@@ -61,7 +63,7 @@ function SideNav() {
   ]
 
   return (
-    <div className="h-screen p-5 bg-[#2c3e50] shadow-lg border-r-2 border-[#2ecc71]">
+    <div className="h-screen p-5 bg-[#2c3e50] shadow-lg border-r-2 border-[#2ecc71] relative">
       {/* Logo and App Name */}
       <div className="flex flex-row items-center">
         <h1 className="text-xl font-bold bg-gradient-to-r from-[#2ecc71] to-[#27ae60] bg-clip-text text-transparent ml-2">
@@ -94,15 +96,15 @@ function SideNav() {
           <div className="flex items-center justify-between p-3 bg-[#34495e] rounded-lg">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-[#2ecc71] flex items-center justify-center text-white">
-                {user.email?.charAt(0).toUpperCase()}
+                {user?.email?.charAt(0)?.toUpperCase() || "?"}
               </div>
               <span className="text-sm text-gray-300 truncate max-w-[120px]">
-                {user.email}
+                {user?.email || "Unknown"}
               </span>
             </div>
             <button 
               onClick={handleSignOut}
-              className="text-gray-400 hover:text-red-400 transition-colors"
+              className="text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
               title="Sign out"
             >
               <LogOut size={18} />

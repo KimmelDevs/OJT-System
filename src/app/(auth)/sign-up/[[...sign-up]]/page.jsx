@@ -1,10 +1,9 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signUp } from "@/lib/auth";
 import Link from "next/link";
-import Image from "next/image";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -15,160 +14,155 @@ export default function SignUpPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Redirect if already signed in
+  useEffect(() => {
+    const storedUser = localStorage.getItem("userData");
+    if (storedUser) router.push("/dashboard");
+  }, [router]);
+
   const handleSignUp = async (e) => {
     e.preventDefault();
     setError("");
-    
+
     // Validation checks
-    if (password !== confirmPassword) {
-      setError("Passwords don't match");
+    if (!username.trim()) {
+      setError("Username is required.");
+      return;
+    }
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError("Please enter a valid email address.");
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+      setError("Password must be at least 6 characters.");
       return;
     }
 
-    if (!username.trim()) {
-      setError("Username is required");
+    // Strong password check
+    const strongPassword = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{6,}$/;
+    if (!strongPassword.test(password)) {
+      setError("Password must include uppercase, lowercase, and a number.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
       return;
     }
 
     setLoading(true);
 
     try {
-      await signUp(email, password, username);
+      const userData = await signUp(email, password, username);
+      localStorage.setItem("userData", JSON.stringify(userData));
       router.push("/dashboard");
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: '#22201a' }}>
-      {/* Background image with overlay - removed for consistency with sign-in page */}
-      
-      <div className="w-full max-w-md p-8 space-y-6 rounded-xl" style={{ 
-        backgroundColor: '#2d2b26',
-        border: '2px solid #3ae973'
-      }}>
+    <div className="relative min-h-screen flex items-center justify-center px-4 bg-[#22201a]">
+      <div className="w-full max-w-md p-8 space-y-6 rounded-xl border-2 border-[#3ae973] bg-[#2d2b26]">
         <div className="text-center">
-          <h2 className="text-3xl font-bold" style={{ color: '#fefffe' }}>Create an Account</h2>
-          <p className="text-sm" style={{ color: '#fefffe' }}>Join our OJT Platform today</p>
+          <h2 className="text-3xl font-bold text-white">Create an Account</h2>
+          <p className="text-sm text-white">Join our OJT Platform today</p>
         </div>
-        
+
         {error && (
-          <div className="p-3 rounded-md text-sm" style={{ 
-            backgroundColor: 'rgba(255, 107, 107, 0.1)',
-            color: '#ff6b6b'
-          }}>
+          <div className="p-3 rounded-md text-sm bg-[rgba(255,107,107,0.1)] text-[#ff6b6b]">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSignUp} className="space-y-4">
+          {/* Username */}
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: '#fefffe' }}>
+            <label htmlFor="username" className="block text-sm font-medium mb-1 text-white">
               Username
             </label>
             <input
+              id="username"
               type="text"
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2"
-              style={{ 
-                backgroundColor: '#393632',
-                border: '1px solid #3ae973',
-                color: '#fefffe',
-                focusRing: '#3ae973'
-              }}
+              disabled={loading}
+              className="w-full px-4 py-2 rounded-lg bg-[#393632] border border-[#3ae973] text-white focus:outline-none focus:ring-2 focus:ring-[#3ae973] disabled:opacity-60"
               placeholder="Enter your username"
             />
           </div>
-          
+
+          {/* Email */}
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: '#fefffe' }}>
+            <label htmlFor="email" className="block text-sm font-medium mb-1 text-white">
               Email
             </label>
             <input
+              id="email"
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2"
-              style={{ 
-                backgroundColor: '#393632',
-                border: '1px solid #3ae973',
-                color: '#fefffe',
-                focusRing: '#3ae973'
-              }}
+              disabled={loading}
+              className="w-full px-4 py-2 rounded-lg bg-[#393632] border border-[#3ae973] text-white focus:outline-none focus:ring-2 focus:ring-[#3ae973] disabled:opacity-60"
               placeholder="you@example.com"
             />
           </div>
-          
+
+          {/* Password */}
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: '#fefffe' }}>
+            <label htmlFor="password" className="block text-sm font-medium mb-1 text-white">
               Password
             </label>
             <input
+              id="password"
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2"
-              style={{ 
-                backgroundColor: '#393632',
-                border: '1px solid #3ae973',
-                color: '#fefffe',
-                focusRing: '#3ae973'
-              }}
-              placeholder="••••••••"
-              minLength={6}
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: '#fefffe' }}>
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2"
-              style={{ 
-                backgroundColor: '#393632',
-                border: '1px solid #3ae973',
-                color: '#fefffe',
-                focusRing: '#3ae973'
-              }}
+              disabled={loading}
+              className="w-full px-4 py-2 rounded-lg bg-[#393632] border border-[#3ae973] text-white focus:outline-none focus:ring-2 focus:ring-[#3ae973] disabled:opacity-60"
               placeholder="••••••••"
               minLength={6}
             />
           </div>
 
+          {/* Confirm Password */}
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1 text-white">
+              Confirm Password
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={loading}
+              className="w-full px-4 py-2 rounded-lg bg-[#393632] border border-[#3ae973] text-white focus:outline-none focus:ring-2 focus:ring-[#3ae973] disabled:opacity-60"
+              placeholder="••••••••"
+              minLength={6}
+            />
+          </div>
+
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 rounded-lg transition-colors disabled:opacity-60 font-medium"
-            style={{ 
-              backgroundColor: '#3ae973',
-              color: '#010100',
-              hoverBackground: '#2fd166'
-            }}
+            className="w-full py-2 rounded-lg font-medium bg-[#3ae973] text-black hover:bg-[#2fd166] disabled:opacity-60 transition-colors"
           >
             {loading ? "Creating Account..." : "Sign Up"}
           </button>
         </form>
 
-        <p className="text-sm text-center" style={{ color: '#fefffe' }}>
+        <p className="text-sm text-center text-white">
           Already have an account?{" "}
-          <Link href="/sign-in" className="hover:underline font-medium" style={{ color: '#3ae973' }}>
+          <Link href="/sign-in" className="hover:underline font-medium text-[#3ae973]">
             Sign in
           </Link>
         </p>

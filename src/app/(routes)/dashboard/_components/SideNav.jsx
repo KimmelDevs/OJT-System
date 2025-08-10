@@ -39,30 +39,24 @@ function SideNav() {
     
     {
       id: 1,
-      name: "My Profile",
-      icon: UserRound,
-      path: "/dashboard/Profile",
-    },
-    {
-      id: 2,
       name: "Dashboard",
       icon: LayoutDashboard,
       path: "/dashboard",
     },
     {
-      id: 3,
+      id: 2,
       name: "OJT Company",
       icon: Briefcase,
       path: "/dashboard/Endorsement",
     },
     {
-      id: 4,
+      id: 3,
       name: "Attendance",
       icon: Clock,
       path: "/dashboard/Attendance",
     },
     {
-      id: 8,
+      id: 4,
       name: "Attendance Logs",
       icon: Clock,
       path: "/dashboard/AttendanceLogs",
@@ -78,6 +72,12 @@ function SideNav() {
       name: "Requirements",
       icon: FileText,
       path: "/dashboard/requirements",
+    },
+    {
+      id: 7,
+      name: "My Profile",
+      icon: UserRound,
+      path: "/dashboard/Profile",
     },
   ]
 
@@ -97,11 +97,11 @@ function SideNav() {
             <div
               className={`flex gap-3 items-center text-[#fefffe] font-medium mb-2 p-3 rounded-lg transition-colors
                 hover:bg-[#2d2b26] hover:text-[#3ae973]
-                ${path.startsWith(menu.path) ? "bg-[#2d2b26] text-[#3ae973]" : ""}`}
+                ${path === menu.path ? "bg-[#2d2b26] text-[#3ae973]" : ""}`}
             >
               <menu.icon 
                 size={20} 
-                className={`${path.startsWith(menu.path) ? "text-[#3ae973]" : "text-[#fefffe]"}`} 
+                className={`${path === menu.path ? "text-[#3ae973]" : "text-[#fefffe]"}`} 
               />
               <span>{menu.name}</span>
             </div>
